@@ -1,3 +1,3 @@
-# Service Template
+# Order service
 ---
-Just take and use
+Service for manage customers' orders
