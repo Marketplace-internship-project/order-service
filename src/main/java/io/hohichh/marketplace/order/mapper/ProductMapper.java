@@ -14,4 +14,5 @@ public interface ProductMapper {
 
     Product toProduct(NewProductDto productDto);
 
+    void updateProductFromDto(NewProductDto dto, @MappingTarget Product entity);
 }
