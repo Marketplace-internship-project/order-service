@@ -1,0 +1,9 @@
+package io.hohichh.marketplace.order.repository;
+
+import io.hohichh.marketplace.order.model.OrderItem;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.UUID;
+
+public interface OrderItemRepository extends JpaRepository<OrderItem, UUID> {
+}
