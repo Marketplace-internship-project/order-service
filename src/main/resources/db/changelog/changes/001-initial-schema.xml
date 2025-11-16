@@ -28,14 +28,14 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="001-02-create-items-table" author="hohichh">
+    <changeSet id="001-02-create-products-table" author="hohichh">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="order_items"/>
+                <tableExists tableName="products"/>
             </not>
         </preConditions>
 
-        <createTable tableName="items">
+        <createTable tableName="products">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -51,7 +51,7 @@
     <changeSet id="001-03-create-order-items-table" author="hohichh">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists tableName="items"/>
+                <tableExists tableName="order_items"/>
             </not>
         </preConditions>
 
@@ -62,7 +62,13 @@
             <column name="order_id" type="uuid">
                 <constraints nullable="false"/>
             </column>
-            <column name="item_id" type="uuid">
+            <column name="product_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_name" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price_per_unit" type="decimal(19, 2)">
                 <constraints nullable="false"/>
             </column>
             <column name="quantity" type="int">
@@ -78,13 +84,6 @@
                                  referencedTableName="orders"
                                  referencedColumnNames="id"
                                  onDelete="CASCADE"/>
-
-        <addForeignKeyConstraint baseTableName="order_items"
-                                 baseColumnNames="item_id"
-                                 constraintName="fk_order_items_to_items"
-                                 referencedTableName="items"
-                                 referencedColumnNames="id"
-                                 onDelete="RESTRICT"/>
     </changeSet>
 
     <changeSet id="001-05-add-orders-status-index" author="hohichh">
