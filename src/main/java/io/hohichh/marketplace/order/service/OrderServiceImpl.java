@@ -3,6 +3,7 @@ package io.hohichh.marketplace.order.service;
 import io.hohichh.marketplace.order.dto.*;
 import io.hohichh.marketplace.order.dto.item.NewOrderItemDto;
 import io.hohichh.marketplace.order.dto.product.ProductDto;
+import io.hohichh.marketplace.order.exception.ActionNotPermittedException;
 import io.hohichh.marketplace.order.exception.ResourceNotFoundException;
 import io.hohichh.marketplace.order.mapper.*;
 import io.hohichh.marketplace.order.model.OrderItem;
@@ -103,7 +104,7 @@ public class OrderServiceImpl implements OrderService {
         if(order.getStatus().equals(Status.PENDING)){
             order.setStatus(Status.CANCELLED);
         }else {
-            throw new RuntimeException("Order status is not PENDING"); //todo заменить на кастомное исключение
+            throw new ActionNotPermittedException("Order status is not PENDING");
         }
 
         Order savedOrder = orderRepository.save(order);

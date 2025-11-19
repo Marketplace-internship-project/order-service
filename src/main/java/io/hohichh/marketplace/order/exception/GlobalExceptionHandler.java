@@ -21,6 +21,13 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(e.getMessage());
     }
 
+    @ExceptionHandler(ActionNotPermittedException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleActionNotPermitted(ActionNotPermittedException e) {
+        log.warn("Business logic violation: {}", e.getMessage());
+        return new ErrorResponse(e.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleGenericException(Exception ex) {
