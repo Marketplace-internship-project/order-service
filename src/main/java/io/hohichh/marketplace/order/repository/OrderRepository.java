@@ -11,9 +11,13 @@ import java.util.List;
 import java.util.UUID;
 
 public interface OrderRepository extends JpaRepository<Order, UUID> {
+    Order findOrderById(UUID orderId);
+
     @Query("SELECT o FROM Order o WHERE o.status IN :statuses")
-    public Page<Order> findOrdersByStatuses(List<Status> statuses, Pageable pageable);
+     Page<Order> findOrdersByStatuses(List<Status> statuses, Pageable pageable);
 
     @Query("SELECT o FROM Order o WHERE o.id IN :ids")
-    public List<Order> findOrdersByIds(List<UUID> ids);
+     List<Order> findOrdersByIds(List<UUID> ids);
+
+    List<Order> findOrdersByUserId(UUID userId);
 }

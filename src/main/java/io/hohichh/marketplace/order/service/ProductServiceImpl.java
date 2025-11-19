@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+
+//TODO выставить пропагейшн для транзакций если этот сервис будет вызываться orderserviceimpl
 @AllArgsConstructor
 @Service
 public class ProductServiceImpl implements ProductService {

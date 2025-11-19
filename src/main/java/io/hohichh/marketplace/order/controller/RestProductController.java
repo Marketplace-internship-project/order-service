@@ -17,13 +17,13 @@ import java.net.URI;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/v1/products")
 @AllArgsConstructor
 public class RestProductController {
     private ProductService productService;
     private final static Logger logger = LoggerFactory.getLogger(RestProductController.class);
 
-    @PostMapping("/products")
+    @PostMapping
     public ResponseEntity<ProductDto> createProduct(
             @Valid
             @RequestBody NewProductDto newProductDto) {
@@ -41,7 +41,7 @@ public class RestProductController {
         return ResponseEntity.created(location).body(productDto);
     }
 
-    @PutMapping("/products/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<ProductDto> updateProduct(
             @PathVariable UUID id,
             @Valid @RequestBody NewProductDto productDto){
@@ -53,7 +53,7 @@ public class RestProductController {
         return ResponseEntity.ok(updatedProductDto);
     }
 
-    @DeleteMapping("/products/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable UUID id){
         logger.debug("Received request to delete product with id: {}", id);
 
@@ -63,7 +63,7 @@ public class RestProductController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/products")
+    @GetMapping
     public ResponseEntity<Page<ProductDto>> getAllProducts(Pageable pageable) {
         logger.debug("Received request to get all products (page: {}, size: {})",
                 pageable.getPageNumber(), pageable.getPageSize());
@@ -74,7 +74,7 @@ public class RestProductController {
         return ResponseEntity.ok(productDtoPage);
     }
 
-    @GetMapping("/products/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getProduct(@PathVariable UUID id) {
         logger.debug("Received request to get product with id: {}", id);
 

@@ -9,10 +9,7 @@ import java.util.UUID;
 
 
 public record NewOrderItemDto(
-        @NotNull UUID orderId,
         @NotNull UUID productId,
-        @NotBlank String productName,
-        @NotNull BigDecimal pricePerUnit,
         @NotNull Integer quantity
 ) implements Serializable {
 }
