@@ -15,6 +15,5 @@ public interface OrderService {
     void deleteOrder(UUID id);
     OrderWithItemsDto getOrderById(UUID id);
     List<OrderDto> getOrdersByUserId(UUID userId);
-    List<OrderDto> getOrdersByIds(List<UUID> ids);
-    Page<OrderDto> getOrderByStatuses(Pageable pageable, List<Status> statuses);
+    Page<OrderDto> searchOrders(List<UUID> ids, List<Status> statuses, Pageable pageable);
 }

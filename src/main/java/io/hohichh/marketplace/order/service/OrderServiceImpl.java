@@ -3,6 +3,7 @@ package io.hohichh.marketplace.order.service;
 import io.hohichh.marketplace.order.dto.*;
 import io.hohichh.marketplace.order.dto.item.NewOrderItemDto;
 import io.hohichh.marketplace.order.dto.product.ProductDto;
+import io.hohichh.marketplace.order.exception.ResourceNotFoundException;
 import io.hohichh.marketplace.order.mapper.*;
 import io.hohichh.marketplace.order.model.OrderItem;
 import io.hohichh.marketplace.order.model.order.*;
@@ -67,7 +68,12 @@ public class OrderServiceImpl implements OrderService {
     public OrderWithItemsDto updateOrderStatus(UUID id, NewStatusOrderDto order) {
         log.debug("Updating order with id {}", id);
         //todo: проверка на админа
-        Order orderToUpd = orderRepository.findOrderById(id);
+        Order orderToUpd = orderRepository.findById(id).orElseThrow(
+                () -> {
+                    log.error("Can't update order: Order with id {} not found", id);
+                    return new ResourceNotFoundException("Order with id " + id + " not found");
+                }
+        );
 
         orderToUpd.setStatus(order.status());
 
@@ -85,7 +91,10 @@ public class OrderServiceImpl implements OrderService {
     public OrderWithItemsDto cancelOrder(UUID id) {
         log.debug("Cancelling order with id {}", id);
         //todo: (секьюрный класс)для безопасности тут еще будет проврека на соотвествия айди юзера из jwt и из параметра(если это не админ)
-        Order order = orderRepository.findOrderById(id);
+        Order order = orderRepository.findById(id).orElseThrow(() -> {
+            log.error("Can't cancel order: Order with id {} not found", id);
+            return new ResourceNotFoundException("Order with id " + id + " not found");
+        });
 
         if(order.getStatus().equals(Status.PENDING)){
             order.setStatus(Status.CANCELLED);
@@ -98,7 +107,7 @@ public class OrderServiceImpl implements OrderService {
         //todo: добавть секьюрити контекст и взять юзер айди
         UserDto userDto = null; //todo: достать юзера из юзер-севриса
 
-        log.info("Oorder with id {} cancelled successfully", id);
+        log.info("Order with id {} cancelled successfully", id);
         return orderMapper.toDtoWithItems(savedOrder, userDto);
     }
 
@@ -118,7 +127,10 @@ public class OrderServiceImpl implements OrderService {
     public OrderWithItemsDto getOrderById(UUID id) {
         log.debug("Getting order with id {}", id);
         //todo: (секьюрный класс)после получения заказа проверка на соотвествие айди юзера и юзера из jwt(если это не админ)
-        Order order = orderRepository.findOrderById(id);
+        Order order = orderRepository.findById(id).orElseThrow(() -> {
+            log.error("Order not found with id: {}", id);
+            return new ResourceNotFoundException("Order not found with id: " + id);
+        });
 
         //todo: добавть секьюрити контекст и взять юзер айди
         UserDto userDto = null; //todo: достать юзера из юзер-севриса
@@ -140,23 +152,20 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<OrderDto> getOrdersByIds(List<UUID> ids) {
-        log.debug("Getting orders by ids");
-        //todo проверка на админа
-        List<Order> orders = orderRepository.findOrdersByIds(ids);
+    public Page<OrderDto> searchOrders(List<UUID> ids, List<Status> statuses, Pageable pageable) {
+        log.debug("Searching orders by filter. Ids count: {}, Statuses count: {}",
+                ids != null ? ids.size() : "null",
+                statuses != null ? statuses.size() : "null");
 
-        log.info("Orders by ids got successfully");
-        return orderMapper.toDtoList(orders);
-    }
+        // TODO: проверка на админа (SecurityContext)
 
-    @Override
-    @Transactional(readOnly = true)
-    public Page<OrderDto> getOrderByStatuses(Pageable pageable, List<Status> statuses) {
-        log.debug("Getting orders by statuses");
-        //todo проверка на админа
-        Page<Order> orders = orderRepository.findOrdersByStatuses(statuses, pageable);
+        List<UUID> safeIds = (ids != null && ids.isEmpty()) ? null : ids;
+        List<Status> safeStatuses = (statuses != null && statuses.isEmpty()) ? null : statuses;
 
-        log.info("Orders by statuses got successfully");
-        return orders.map(orderMapper::toDto);
+        Page<Order> ordersPage = orderRepository.findAllByFilter(safeIds, safeStatuses, pageable);
+
+        log.info("Orders found: {}", ordersPage.getTotalElements());
+
+        return ordersPage.map(orderMapper::toDto);
     }
 }

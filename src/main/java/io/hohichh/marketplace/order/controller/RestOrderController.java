@@ -31,7 +31,7 @@ public class RestOrderController {
     @PostMapping
     public ResponseEntity<OrderWithItemsDto> createOrder
             (@RequestBody List<NewOrderItemDto> items) {
-        log.debug("Get POST request to create order");
+        log.debug("Received POST request to create order");
 
         OrderWithItemsDto order = orderService.createOrder(items);
 
@@ -50,7 +50,7 @@ public class RestOrderController {
             @PathVariable UUID id,
             @Valid @RequestBody NewStatusOrderDto newStatusOrder
             ){
-        log.debug("Get PATCH request to update order");
+        log.debug("Received PATCH request to update order");
 
         OrderWithItemsDto order;
         if(newStatusOrder.status().equals(Status.CANCELLED)){
@@ -65,7 +65,7 @@ public class RestOrderController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable UUID id) {
-        log.debug("Get DELETE request to delete order");
+        log.debug("Received DELETE request to delete order");
 
         orderService.deleteOrder(id);
 
@@ -75,7 +75,7 @@ public class RestOrderController {
 
     @GetMapping("/{id}")
     public ResponseEntity<OrderWithItemsDto> getOrder(@PathVariable UUID id) {
-        log.debug("Get GET request to get order");
+        log.debug("Received GET request to get order");
 
         OrderWithItemsDto order = orderService.getOrderById(id);
 
@@ -87,7 +87,7 @@ public class RestOrderController {
     public ResponseEntity<List<OrderDto>> getOrdersByUserId(
             @RequestParam("user-id") UUID userId
     ) {
-        log.debug("Get GET request to get orders by user id");
+        log.debug("Received GET request to get orders by user id");
 
         List<OrderDto> orders = orderService.getOrdersByUserId(userId);
 
@@ -96,27 +96,16 @@ public class RestOrderController {
     }
 
     @GetMapping
-    public ResponseEntity<List<OrderDto>> getOrdersByIds(@RequestBody List<UUID> ids) {
-        log.debug("Get GET request to get orders by id");
+    public ResponseEntity<Page<OrderDto>> getOrders(
+            @RequestParam(required = false) List<UUID> ids,
+            @RequestParam(required = false) List<Status> statuses,
+            Pageable pageable) {
+        log.debug("Received GET request to get orders");
 
-        List<OrderDto> orders = orderService.getOrdersByIds(ids);
+        Page<OrderDto> orders = orderService.searchOrders(ids, statuses, pageable);
 
-        log.info("Get orders by id request processed successfully");
+        log.info("Get orders request processed successfully");
         return ResponseEntity.ok(orders);
     }
-
-    @GetMapping
-    public ResponseEntity<Page<OrderDto>> getOrderByStatuses (
-            @RequestBody List<Status> statuses,
-            Pageable pageable){
-        log.debug("Get GET request to get orders by status");
-
-        Page<OrderDto> orders = orderService.getOrderByStatuses(pageable, statuses);
-
-        log.info("Get orders by status request processed successfully");
-        return ResponseEntity.ok(orders);
-    }
-
-
 
 }
