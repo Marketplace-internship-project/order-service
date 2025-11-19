@@ -132,6 +132,11 @@ public class OrderServiceImpl implements OrderService {
     public void deleteOrder(UUID id) {
         log.debug("Deleting order with id {}", id);
 
+        if (!orderRepository.existsById(id)) {
+            log.error("Order with id {} not found", id);
+            throw new ResourceNotFoundException("Order with id " + id + " not found");
+        }
+
         orderRepository.deleteById(id);
 
         log.info("Order with id {} deleted successfully", id);
