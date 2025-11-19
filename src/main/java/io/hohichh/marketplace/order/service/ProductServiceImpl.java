@@ -2,6 +2,7 @@ package io.hohichh.marketplace.order.service;
 
 import io.hohichh.marketplace.order.dto.product.NewProductDto;
 import io.hohichh.marketplace.order.dto.product.ProductDto;
+import io.hohichh.marketplace.order.exception.ResourceNotFoundException;
 import io.hohichh.marketplace.order.mapper.ProductMapper;
 import io.hohichh.marketplace.order.model.Product;
 import io.hohichh.marketplace.order.repository.ProductRepository;
@@ -45,7 +46,7 @@ public class ProductServiceImpl implements ProductService {
         Product productToUpd = productRepository.findById(id)
                 .orElseThrow(() -> {
                     logger.error("Product with id {} not found", id);
-                    return new RuntimeException("Product with id " + id + " not found"); //TODO: заменить на кастом
+                    return new ResourceNotFoundException("Product with id " + id + " not found");
                 });
 
         productMapper.updateProductFromDto(product, productToUpd);
@@ -63,7 +64,7 @@ public class ProductServiceImpl implements ProductService {
 
         if (!productRepository.existsById(id)) {
             logger.error("Product with id {} not found, deletion failed", id);
-            throw new RuntimeException("Product with id " + id + " not found"); //TODO: заменить на кастом
+            throw new ResourceNotFoundException("Product with id " + id + " not found");
         }
 
         productRepository.deleteById(id);
@@ -92,7 +93,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id).orElseThrow(
                 () -> {
                     logger.error("Product with id {} not found", id);
-                    return new RuntimeException("Product with id " + id + " not found"); //TODO: заменить на кастом
+                    return new ResourceNotFoundException("Product with id " + id + " not found");
                 }
         );
 
