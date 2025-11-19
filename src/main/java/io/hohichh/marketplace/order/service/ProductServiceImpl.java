@@ -9,6 +9,8 @@ import io.hohichh.marketplace.order.repository.ProductRepository;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 
-//todo кеширование
 @AllArgsConstructor
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -40,6 +41,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value="products", key="#id")
     public ProductDto updateProduct(UUID id, NewProductDto product) {
         logger.debug("Attemp to update product");
 
@@ -59,6 +61,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "products", key = "#id")
     public void deleteProduct(UUID id) {
         logger.debug("Attempt to delete product with id {}", id);
 
@@ -87,6 +90,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "products", key="#id")
     public ProductDto getProductById(UUID id) {
         logger.debug("Attempt to retrieve product by id {}", id);
 

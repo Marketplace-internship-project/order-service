@@ -13,7 +13,8 @@ import io.hohichh.marketplace.order.repository.*;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +30,6 @@ import java.util.List;
 import java.util.UUID;
 
 
-//todo кеширование
 @Service
 @AllArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -78,6 +78,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
+    @Cacheable(value = "orders", key = "#id")
     public OrderWithItemsDto updateOrderStatus(UUID id, NewStatusOrderDto order) {
         log.debug("Updating order with id {}", id);
 
@@ -101,6 +102,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     @PreAuthorize("hasRole('ADMIN') or @orderSecurity.isOrderOwner(#id, authentication)")
+    @CacheEvict(value = "orders", key = "#id")
     public OrderWithItemsDto cancelOrder(UUID id) {
         log.debug("Cancelling order with id {}", id);
 
@@ -125,6 +127,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    @Cacheable(value = "orders", key = "#id")
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteOrder(UUID id) {
         log.debug("Deleting order with id {}", id);
@@ -137,6 +140,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN') or @orderSecurity.isOrderOwner(#id, authentication)")
+    @Cacheable(value = "orders", key = "#id")
     public OrderWithItemsDto getOrderById(UUID id) {
         log.debug("Getting order with id {}", id);
 

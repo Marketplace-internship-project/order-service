@@ -6,20 +6,50 @@ services:
     build: .
     container_name: order-service
     ports:
-      - "8080:8080"
+      - "8082:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
 
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5434/${POSTGRES_DB}
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
 
       - SPRING_DATA_REDIS_HOST=redis-cache
-      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_DATA_REDIS_PORT=6380
     depends_on:
       postgres-db:
         condition: service_healthy
       redis-cache:
         condition: service_healthy
 
-#todo: КОНФИГ ПОСТГРЕС!!!
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: postgres-order-db
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-cache:
+    image: redis:7-alpine
+    container_name: order-redis-cache
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+volumes:
+  postgres-data:
