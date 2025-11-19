@@ -2,7 +2,6 @@ package io.hohichh.marketplace.order.config;
 
 import feign.RequestInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.fileupload.RequestContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.request.RequestContextHolder;

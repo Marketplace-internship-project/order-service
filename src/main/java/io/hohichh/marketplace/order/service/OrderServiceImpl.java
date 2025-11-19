@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,7 +47,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemMapper orderItemMapper;
 
     private final UserServiceClient userClient;
-    private final Resilience4JCircuitBreakerFactory  circuitBreakerFactory;
+    private final CircuitBreakerFactory<?,?> circuitBreakerFactory;
 
     @Transactional
     public OrderWithItemsDto createOrder(List<NewOrderItemDto> items){
@@ -79,7 +80,6 @@ public class OrderServiceImpl implements OrderService {
     @PreAuthorize("hasRole('ADMIN')")
     public OrderWithItemsDto updateOrderStatus(UUID id, NewStatusOrderDto order) {
         log.debug("Updating order with id {}", id);
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
 
         Order orderToUpd = orderRepository.findById(id).orElseThrow(
                 () -> {
@@ -92,7 +92,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(orderToUpd);
 
-        UserDto userDto = getUserWithCircuitBreaker(userId);
+        UserDto userDto = getUserWithCircuitBreaker(savedOrder.getUserId());
 
         log.info("order with id {} updated successfully", id);
         return orderMapper.toDtoWithItems(savedOrder, userDto);
@@ -103,7 +103,6 @@ public class OrderServiceImpl implements OrderService {
     @PreAuthorize("hasRole('ADMIN') or @orderSecurity.isOrderOwner(#id, authentication)")
     public OrderWithItemsDto cancelOrder(UUID id) {
         log.debug("Cancelling order with id {}", id);
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
 
         Order order = orderRepository.findById(id).orElseThrow(() -> {
             log.error("Can't cancel order: Order with id {} not found", id);
@@ -118,7 +117,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
-        UserDto userDto = getUserWithCircuitBreaker(userId);
+        UserDto userDto = getUserWithCircuitBreaker(savedOrder.getUserId());
 
         log.info("Order with id {} cancelled successfully", id);
         return orderMapper.toDtoWithItems(savedOrder, userDto);
@@ -140,14 +139,13 @@ public class OrderServiceImpl implements OrderService {
     @PreAuthorize("hasRole('ADMIN') or @orderSecurity.isOrderOwner(#id, authentication)")
     public OrderWithItemsDto getOrderById(UUID id) {
         log.debug("Getting order with id {}", id);
-        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
 
         Order order = orderRepository.findById(id).orElseThrow(() -> {
             log.error("Order not found with id: {}", id);
             return new ResourceNotFoundException("Order not found with id: " + id);
         });
 
-        UserDto userDto = getUserWithCircuitBreaker(userId);
+        UserDto userDto = getUserWithCircuitBreaker(order.getUserId());
 
         log.info("Order with id {} got successfully", id);
         return orderMapper.toDtoWithItems(order, userDto);

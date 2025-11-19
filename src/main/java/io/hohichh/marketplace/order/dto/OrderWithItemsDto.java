@@ -4,6 +4,7 @@ import io.hohichh.marketplace.order.dto.item.OrderItemDto;
 import io.hohichh.marketplace.order.model.order.Status;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.lang.Nullable;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -15,7 +16,7 @@ public record OrderWithItemsDto(
         @NotNull UUID userId,
         @NotNull Status status,
         @NotNull LocalDate creationDate,
-        @NotNull UserDto userDto,
+        @Nullable UserDto userDto,
         @Valid List<OrderItemDto> orderItems
 ) implements Serializable {
 }
