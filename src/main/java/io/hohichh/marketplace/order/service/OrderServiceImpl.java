@@ -1,5 +1,6 @@
 package io.hohichh.marketplace.order.service;
 
+import io.hohichh.marketplace.order.client.UserServiceClient;
 import io.hohichh.marketplace.order.dto.*;
 import io.hohichh.marketplace.order.dto.item.NewOrderItemDto;
 import io.hohichh.marketplace.order.dto.product.ProductDto;
@@ -12,6 +13,7 @@ import io.hohichh.marketplace.order.repository.*;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cloud.circuitbreaker.resilience4j.Resilience4JCircuitBreakerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+
+//todo кеширование
 @Service
 @AllArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -41,14 +45,18 @@ public class OrderServiceImpl implements OrderService {
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
     private final OrderItemMapper orderItemMapper;
 
+    private final UserServiceClient userClient;
+    private final Resilience4JCircuitBreakerFactory  circuitBreakerFactory;
+
     @Transactional
     public OrderWithItemsDto createOrder(List<NewOrderItemDto> items){
         log.debug("Creating new order with {} items", items.size());
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
 
         Order order = new Order();
         order.setStatus(Status.PENDING);
         order.setCreationDate(LocalDate.now(clock));
-        order.setUserId(UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName()));
+        order.setUserId(userId);
 
         List<OrderItem> entityItems = new ArrayList<>();
         for(NewOrderItemDto itemDto : items){
@@ -60,7 +68,7 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderItems(entityItems);
         Order savedOrder = orderRepository.save(order);
 
-        UserDto userDto = null; //TODO написать curcuit breaker клиент к юзер-сервису и забирать у него юзера по айди
+        UserDto userDto = getUserWithCircuitBreaker(userId);
 
         log.info("Order {} created with {} items successfully", savedOrder.getId(), entityItems.size());
         return orderMapper.toDtoWithItems(savedOrder, userDto);
@@ -71,6 +79,7 @@ public class OrderServiceImpl implements OrderService {
     @PreAuthorize("hasRole('ADMIN')")
     public OrderWithItemsDto updateOrderStatus(UUID id, NewStatusOrderDto order) {
         log.debug("Updating order with id {}", id);
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
 
         Order orderToUpd = orderRepository.findById(id).orElseThrow(
                 () -> {
@@ -83,8 +92,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(orderToUpd);
 
-        //todo: добавть секьюрити контекст и взять юзер айди
-        UserDto userDto = null; //todo: достать юзера из юзер-севриса
+        UserDto userDto = getUserWithCircuitBreaker(userId);
 
         log.info("order with id {} updated successfully", id);
         return orderMapper.toDtoWithItems(savedOrder, userDto);
@@ -95,6 +103,7 @@ public class OrderServiceImpl implements OrderService {
     @PreAuthorize("hasRole('ADMIN') or @orderSecurity.isOrderOwner(#id, authentication)")
     public OrderWithItemsDto cancelOrder(UUID id) {
         log.debug("Cancelling order with id {}", id);
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
 
         Order order = orderRepository.findById(id).orElseThrow(() -> {
             log.error("Can't cancel order: Order with id {} not found", id);
@@ -109,8 +118,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
-        //todo: добавть секьюрити контекст и взять юзер айди
-        UserDto userDto = null; //todo: достать юзера из юзер-севриса
+        UserDto userDto = getUserWithCircuitBreaker(userId);
 
         log.info("Order with id {} cancelled successfully", id);
         return orderMapper.toDtoWithItems(savedOrder, userDto);
@@ -132,14 +140,14 @@ public class OrderServiceImpl implements OrderService {
     @PreAuthorize("hasRole('ADMIN') or @orderSecurity.isOrderOwner(#id, authentication)")
     public OrderWithItemsDto getOrderById(UUID id) {
         log.debug("Getting order with id {}", id);
+        UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
 
         Order order = orderRepository.findById(id).orElseThrow(() -> {
             log.error("Order not found with id: {}", id);
             return new ResourceNotFoundException("Order not found with id: " + id);
         });
 
-        //todo: добавть секьюрити контекст и взять юзер айди
-        UserDto userDto = null; //todo: достать юзера из юзер-севриса
+        UserDto userDto = getUserWithCircuitBreaker(userId);
 
         log.info("Order with id {} got successfully", id);
         return orderMapper.toDtoWithItems(order, userDto);
@@ -173,5 +181,16 @@ public class OrderServiceImpl implements OrderService {
         log.info("Orders found: {}", ordersPage.getTotalElements());
 
         return ordersPage.map(orderMapper::toDto);
+    }
+
+
+    private UserDto getUserWithCircuitBreaker(UUID userId) {
+        return circuitBreakerFactory.create("user-service").run(
+                () -> userClient.getUserById(userId),
+                throwable -> {
+                    log.warn("Failed to get user info for id {}: {}", userId, throwable.getMessage());
+                    return null;
+                }
+        );
     }
 }

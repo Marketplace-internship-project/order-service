@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 
-
+//todo кеширование
 @AllArgsConstructor
 @Service
 public class ProductServiceImpl implements ProductService {
