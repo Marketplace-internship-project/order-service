@@ -13,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +47,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setStatus(Status.PENDING);
         order.setCreationDate(LocalDate.now(clock));
-        order.setUserId(UUID.randomUUID()); //TODO добавить security и контекст безопасности и достать айди юзера из jwt
+        order.setUserId(UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName()));
 
         List<OrderItem> entityItems = new ArrayList<>();
         for(NewOrderItemDto itemDto : items){
@@ -65,9 +67,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public OrderWithItemsDto updateOrderStatus(UUID id, NewStatusOrderDto order) {
         log.debug("Updating order with id {}", id);
-        //todo: проверка на админа
+
         Order orderToUpd = orderRepository.findById(id).orElseThrow(
                 () -> {
                     log.error("Can't update order: Order with id {} not found", id);
@@ -88,9 +91,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('ADMIN') or @orderSecurity.isOrderOwner(#id, authentication)")
     public OrderWithItemsDto cancelOrder(UUID id) {
         log.debug("Cancelling order with id {}", id);
-        //todo: (секьюрный класс)для безопасности тут еще будет проврека на соотвествия айди юзера из jwt и из параметра(если это не админ)
+
         Order order = orderRepository.findById(id).orElseThrow(() -> {
             log.error("Can't cancel order: Order with id {} not found", id);
             return new ResourceNotFoundException("Order with id " + id + " not found");
@@ -113,8 +117,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteOrder(UUID id) {
-        //todo проверка админской роли (секьюрный класс)
         log.debug("Deleting order with id {}", id);
 
         orderRepository.deleteById(id);
@@ -124,9 +128,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN') or @orderSecurity.isOrderOwner(#id, authentication)")
     public OrderWithItemsDto getOrderById(UUID id) {
         log.debug("Getting order with id {}", id);
-        //todo: (секьюрный класс)после получения заказа проверка на соотвествие айди юзера и юзера из jwt(если это не админ)
+
         Order order = orderRepository.findById(id).orElseThrow(() -> {
             log.error("Order not found with id: {}", id);
             return new ResourceNotFoundException("Order not found with id: " + id);
@@ -141,9 +146,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN') or @orderSecurity.isAccountOwner(#userId, authentication)")
     public List<OrderDto> getOrdersByUserId(UUID userId) {
         log.debug("Getting orders by user id {}", userId);
-        //todo: (секьюрный класс)для безопасности тут еще будет проврека на соотвествия айди юзера из jwt и из параметра(если это не админ)
+
         List<Order> orders = orderRepository.findOrdersByUserId(userId);
 
         log.info("Orders by user id got successfully {}", userId);
@@ -152,12 +158,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public Page<OrderDto> searchOrders(List<UUID> ids, List<Status> statuses, Pageable pageable) {
         log.debug("Searching orders by filter. Ids count: {}, Statuses count: {}",
                 ids != null ? ids.size() : "null",
                 statuses != null ? statuses.size() : "null");
-
-        // TODO: проверка на админа (SecurityContext)
 
         List<UUID> safeIds = (ids != null && ids.isEmpty()) ? null : ids;
         List<Status> safeStatuses = (statuses != null && statuses.isEmpty()) ? null : statuses;
