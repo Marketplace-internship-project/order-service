@@ -52,7 +52,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class OrderServiceTest {
+class OrderServiceTest {
 
     @Mock
     private OrderRepository orderRepository;
@@ -150,7 +150,7 @@ public class OrderServiceTest {
         when(orderItemMapper.toOrderItem(any(), any(), any())).thenReturn(new OrderItem());
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
 
-        when(userClient.getUserById(eq(fakeToken), eq(userId))).thenReturn(null);
+        when(userClient.getUserById(fakeToken, userId)).thenReturn(null);
         when(orderMapper.toDtoWithItems(savedOrder, null)).thenReturn(expectedDto);
 
         OrderWithItemsDto result = orderService.createOrder(items);
@@ -181,7 +181,7 @@ public class OrderServiceTest {
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(existingOrder));
         when(orderRepository.save(existingOrder)).thenReturn(updatedOrder);
-        when(userClient.getUserById(eq(fakeToken), eq(userId))).thenReturn(null);
+        when(userClient.getUserById(fakeToken, userId)).thenReturn(null);
         when(orderMapper.toDtoWithItems(updatedOrder, null)).thenReturn(expectedDto);
 
         OrderWithItemsDto result = orderService.updateOrderStatus(orderId, statusDto);
@@ -266,7 +266,7 @@ public class OrderServiceTest {
         );
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-        when(userClient.getUserById(eq(fakeToken), eq(userId))).thenReturn(null);
+        when(userClient.getUserById(fakeToken, userId)).thenReturn(null);
         when(orderMapper.toDtoWithItems(order, null)).thenReturn(expectedDto);
 
         OrderWithItemsDto result = orderService.getOrderById(orderId);

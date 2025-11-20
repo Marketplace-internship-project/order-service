@@ -21,7 +21,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class RestProductController {
     private ProductService productService;
-    private final static Logger logger = LoggerFactory.getLogger(RestProductController.class);
+    private static final Logger logger = LoggerFactory.getLogger(RestProductController.class);
 
     @PostMapping
     public ResponseEntity<ProductDto> createProduct(

@@ -26,7 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ProductServiceTest {
+class ProductServiceTest {
 
     @Mock
     private ProductRepository productRepository;
@@ -38,7 +38,7 @@ public class ProductServiceTest {
     private ProductServiceImpl productService;
 
     @Test
-    public void createProduct_shouldReturnProductDto() {
+    void createProduct_shouldReturnProductDto() {
         // Arrange
         NewProductDto newProductDto = new NewProductDto("Test Product", BigDecimal.TEN);
         Product product = new Product();
@@ -62,7 +62,7 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void updateProduct_shouldReturnProductDto() {
+    void updateProduct_shouldReturnProductDto() {
         // Arrange
         UUID id = UUID.randomUUID();
         NewProductDto updateDto = new NewProductDto("Updated Name", BigDecimal.ONE);
@@ -89,7 +89,7 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void updateProduct_shouldThrowResourceNotFoundException() {
+    void updateProduct_shouldThrowResourceNotFoundException() {
         // Arrange
         UUID id = UUID.randomUUID();
         NewProductDto updateDto = new NewProductDto("Name", BigDecimal.TEN);
@@ -104,7 +104,7 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void deleteProduct_voidType() {
+    void deleteProduct_voidType() {
         // Arrange
         UUID id = UUID.randomUUID();
         when(productRepository.existsById(id)).thenReturn(true);
@@ -117,7 +117,7 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void deleteProduct_shouldThrowResourceNotFoundException() {
+    void deleteProduct_shouldThrowResourceNotFoundException() {
         // Arrange
         UUID id = UUID.randomUUID();
         when(productRepository.existsById(id)).thenReturn(false);
@@ -130,7 +130,7 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void getAllProducts_shouldReturnPageOfProductDto() {
+    void getAllProducts_shouldReturnPageOfProductDto() {
         // Arrange
         Pageable pageable = PageRequest.of(0, 10);
         Product product = new Product();
@@ -150,7 +150,7 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void getProductById_shouldReturnProductDto() {
+    void getProductById_shouldReturnProductDto() {
         // Arrange
         UUID id = UUID.randomUUID();
         Product product = new Product();
@@ -167,7 +167,7 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void getProductById_shouldThrowResourceNotFoundException() {
+    void getProductById_shouldThrowResourceNotFoundException() {
         // Arrange
         UUID id = UUID.randomUUID();
         when(productRepository.findById(id)).thenReturn(Optional.empty());

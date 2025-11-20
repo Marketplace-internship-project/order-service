@@ -26,7 +26,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductRepository productRepository;
     private ProductMapper productMapper;
 
-    private final static Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
 
     @Override
     @Transactional
