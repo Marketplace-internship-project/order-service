@@ -15,8 +15,8 @@ Run the setup script for your OS:
 
 Linux / macOS / Git Bash:
 ```
-chmod +x start-all.sh
-./start-all.sh
+chmod +x setup.sh
+./setup.sh
 ```
 
 
