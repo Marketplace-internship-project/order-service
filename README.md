@@ -9,10 +9,8 @@ Clone reps via following commands:
 
 ```bash
 git clone https://github.com/Marketplace-internship-project/authentication-service
-
 git clone https://github.com/Marketplace-internship-project/user-service
-
-git clone https://github.com/Marketplace-internship-project/order-service/tree/dev
+git clone -b dev https://github.com/Marketplace-internship-project/order-service.git
 ```
 
 Enter the order-service dir and run:
