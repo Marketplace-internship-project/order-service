@@ -55,7 +55,7 @@ class OrderAppTest extends AbstractApplicationTest {
 
 
         UserDto mockUser = new UserDto(userId, "John", "Doe", LocalDate.of(1990, 1, 1), "john@test.com");
-        when(userServiceClient.getUserById(userToken, userId)).thenReturn(mockUser);
+        when(userServiceClient.getUserById("Bearer " + userToken, userId)).thenReturn(mockUser);
     }
 
     @Test
@@ -104,6 +104,7 @@ class OrderAppTest extends AbstractApplicationTest {
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody().status()).isEqualTo(Status.SHIPPED);
+        assertThat(response.getBody().userDto()).isNull();
         assertThat(orderRepository.findById(orderId).get().getStatus()).isEqualTo(Status.SHIPPED);
     }
 
@@ -142,6 +143,7 @@ class OrderAppTest extends AbstractApplicationTest {
 
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().userDto()).isNotNull();
         assertThat(response.getBody().status()).isEqualTo(Status.CANCELLED);
     }
 
@@ -257,6 +259,7 @@ class OrderAppTest extends AbstractApplicationTest {
 
         // Assert
         assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(getResponse.getBody().userDto()).isNotNull();
         assertThat(getResponse.getBody().id()).isEqualTo(orderId);
     }
 
