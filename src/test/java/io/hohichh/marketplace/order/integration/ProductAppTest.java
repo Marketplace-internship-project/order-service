@@ -47,8 +47,6 @@ class ProductAppTest extends AbstractApplicationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().name()).isEqualTo("iPhone 15");
-
-        // Проверяем БД
         assertThat(productRepository.findAll()).hasSize(1);
     }
 
@@ -61,7 +59,7 @@ class ProductAppTest extends AbstractApplicationTest {
         ResponseEntity<String> response = restTemplate.postForEntity(
                 "/v1/products",
                 getAuthHeaders(userToken, newProduct),
-                String.class // Ожидаем ошибку
+                String.class
         );
 
         // Assert
@@ -69,7 +67,6 @@ class ProductAppTest extends AbstractApplicationTest {
         assertThat(productRepository.findAll()).isEmpty();
     }
 
-    // ... предыдущие методы ...
 
     @Test
     void updateProduct_shouldSucceedWhenAdmin() {
@@ -195,11 +192,11 @@ class ProductAppTest extends AbstractApplicationTest {
         productRepository.save(createProduct("P2", BigDecimal.TEN));
 
         // Act
-        ResponseEntity<RestResponsePage<ProductDto>> response = restTemplate.exchange(
+        ResponseEntity<TestPage<ProductDto>> response = restTemplate.exchange(
                 "/v1/products",
                 HttpMethod.GET,
                 getAuthHeaders(userToken),
-                new org.springframework.core.ParameterizedTypeReference<RestResponsePage<ProductDto>>() {}
+                new org.springframework.core.ParameterizedTypeReference<TestPage<ProductDto>>() {}
         );
 
         // Assert

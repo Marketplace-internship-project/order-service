@@ -3,6 +3,7 @@ package io.hohichh.marketplace.order.integration;
 import io.hohichh.marketplace.order.client.UserServiceClient;
 import io.hohichh.marketplace.order.dto.*;
 import io.hohichh.marketplace.order.dto.item.NewOrderItemDto;
+import io.hohichh.marketplace.order.model.OrderItem;
 import io.hohichh.marketplace.order.model.Product;
 import io.hohichh.marketplace.order.model.order.Order;
 import io.hohichh.marketplace.order.model.order.Status;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -31,7 +33,7 @@ class OrderAppTest extends AbstractApplicationTest {
     @Autowired
     private OrderRepository orderRepository;
 
-    @Mock
+    @MockitoBean
     private UserServiceClient userServiceClient;
 
     private UUID userId;
@@ -151,7 +153,7 @@ class OrderAppTest extends AbstractApplicationTest {
         order.setStatus(Status.SHIPPED);
         order.setCreationDate(LocalDate.now());
 
-        io.hohichh.marketplace.order.model.OrderItem item = new io.hohichh.marketplace.order.model.OrderItem();
+        OrderItem item = new OrderItem();
         item.setOrder(order);
         item.setProductId(storedProduct.getId());
         item.setProductName("Test Product");
@@ -350,11 +352,11 @@ class OrderAppTest extends AbstractApplicationTest {
         String adminToken = generateToken(UUID.randomUUID(), "ADMIN");
 
         // Act
-        ResponseEntity<RestResponsePage<OrderDto>> response = restTemplate.exchange(
+        ResponseEntity<TestPage<OrderDto>> response = restTemplate.exchange(
                 "/v1/orders?size=10&page=0",
                 HttpMethod.GET,
                 getAuthHeaders(adminToken),
-                new org.springframework.core.ParameterizedTypeReference<RestResponsePage<OrderDto>>() {}
+                new org.springframework.core.ParameterizedTypeReference<TestPage<OrderDto>>() {}
         );
 
         // Assert
@@ -373,11 +375,11 @@ class OrderAppTest extends AbstractApplicationTest {
         String adminToken = generateToken(UUID.randomUUID(), "ADMIN");
 
         // Act
-        ResponseEntity<RestResponsePage<OrderDto>> response = restTemplate.exchange(
+        ResponseEntity<TestPage<OrderDto>> response = restTemplate.exchange(
                 "/v1/orders?ids=" + orderId,
                 HttpMethod.GET,
                 getAuthHeaders(adminToken),
-                new org.springframework.core.ParameterizedTypeReference<RestResponsePage<OrderDto>>() {}
+                new org.springframework.core.ParameterizedTypeReference<TestPage<OrderDto>>() {}
         );
 
         // Assert

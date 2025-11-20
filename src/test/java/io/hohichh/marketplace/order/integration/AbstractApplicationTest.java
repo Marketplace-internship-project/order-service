@@ -88,30 +88,43 @@ public abstract class AbstractApplicationTest {
         return new HttpEntity<>(body, headers);
     }
 
+    static class TestPage<T> {
+        public List<T> content;
+        public long totalElements;
+        public int totalPages;
+        public int size;
+        public int number;
 
-    static class RestResponsePage<T> extends PageImpl<T> {
+        public TestPage() {}
 
-        @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-        public RestResponsePage(@JsonProperty("content") List<T> content,
-                                @JsonProperty("number") int number,
-                                @JsonProperty("size") int size,
-                                @JsonProperty("totalElements") Long totalElements,
-                                @JsonProperty("pageable") JsonNode pageable,
-                                @JsonProperty("last") boolean last,
-                                @JsonProperty("totalPages") int totalPages,
-                                @JsonProperty("sort") JsonNode sort,
-                                @JsonProperty("first") boolean first,
-                                @JsonProperty("numberOfElements") int numberOfElements) {
-
-            super(content, PageRequest.of(number, size), totalElements);
-        }
-
-        public RestResponsePage(List<T> content, Pageable pageable, long total) {
-            super(content, pageable, total);
-        }
-
-        public RestResponsePage(List<T> content) {
-            super(content);
-        }
+        public List<T> getContent() { return content; }
+        public long getTotalElements() { return totalElements; }
     }
+
+
+//    static class RestResponsePage<T> extends PageImpl<T> {
+//
+//        @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+//        public RestResponsePage(@JsonProperty("content") List<T> content,
+//                                @JsonProperty("number") int number,
+//                                @JsonProperty("size") int size,
+//                                @JsonProperty("totalElements") Long totalElements,
+//                                @JsonProperty("pageable") JsonNode pageable,
+//                                @JsonProperty("last") boolean last,
+//                                @JsonProperty("totalPages") int totalPages,
+//                                @JsonProperty("sort") JsonNode sort,
+//                                @JsonProperty("first") boolean first,
+//                                @JsonProperty("numberOfElements") int numberOfElements) {
+//
+//            super(content, PageRequest.of(number, size), totalElements);
+//        }
+//
+//        public RestResponsePage(List<T> content, Pageable pageable, long total) {
+//            super(content, pageable, total);
+//        }
+//
+//        public RestResponsePage(List<T> content) {
+//            super(content);
+//        }
+//    }
 }
