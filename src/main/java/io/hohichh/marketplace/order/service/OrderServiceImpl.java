@@ -78,7 +78,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
-    @Cacheable(value = "orders", key = "#id")
+    @CacheEvict(value = "orders", key = "#id")
     public OrderWithItemsDto updateOrderStatus(UUID id, NewStatusOrderDto order) {
         log.debug("Updating order with id {}", id);
 
@@ -127,7 +127,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    @Cacheable(value = "orders", key = "#id")
+    @CacheEvict(value = "orders", key = "#id")
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteOrder(UUID id) {
         log.debug("Deleting order with id {}", id);

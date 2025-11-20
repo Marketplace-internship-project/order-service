@@ -13,7 +13,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface OrderItemMapper {
     @Mapping(target="id", ignore = true)
-    @Mapping(target="order", source="order")
+    @Mapping(target="orderId", source="order.id")
     @Mapping(target="productId", source = "product.id")
     @Mapping(target = "productName", source = "product.name")
     @Mapping(target = "pricePerUnit", source = "product.price")
