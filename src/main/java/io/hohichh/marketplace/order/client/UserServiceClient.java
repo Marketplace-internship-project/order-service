@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import io.hohichh.marketplace.order.dto.UserDto;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.UUID;
 
@@ -16,5 +17,5 @@ import java.util.UUID;
 public interface UserServiceClient {
 
     @GetMapping("/v1/users/{id}")
-    UserDto getUserById(@PathVariable("id") UUID id);
+    UserDto getUserById(@RequestHeader("Authorization") String token, @PathVariable("id") UUID id);
 }

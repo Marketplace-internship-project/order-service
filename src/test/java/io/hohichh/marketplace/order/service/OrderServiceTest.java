@@ -27,10 +27,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -70,6 +74,8 @@ public class OrderServiceTest {
     private CircuitBreaker circuitBreaker;
     @Mock
     private Clock clock;
+    private final String fakeToken = "Bearer test-token-123";
+
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -95,11 +101,16 @@ public class OrderServiceTest {
 
         lenient().when(clock.instant()).thenReturn(Instant.parse("2025-01-01T10:00:00Z"));
         lenient().when(clock.getZone()).thenReturn(ZoneId.of("UTC"));
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", fakeToken);
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     }
 
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
+        RequestContextHolder.resetRequestAttributes();
     }
 
     private void mockSecurityContext() {
@@ -138,7 +149,8 @@ public class OrderServiceTest {
         when(productService.getProductById(productId)).thenReturn(productDto);
         when(orderItemMapper.toOrderItem(any(), any(), any())).thenReturn(new OrderItem());
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
-        when(userClient.getUserById(userId)).thenReturn(null);
+
+        when(userClient.getUserById(eq(fakeToken), eq(userId))).thenReturn(null);
         when(orderMapper.toDtoWithItems(savedOrder, null)).thenReturn(expectedDto);
 
         OrderWithItemsDto result = orderService.createOrder(items);
@@ -169,7 +181,7 @@ public class OrderServiceTest {
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(existingOrder));
         when(orderRepository.save(existingOrder)).thenReturn(updatedOrder);
-        when(userClient.getUserById(userId)).thenReturn(null);
+        when(userClient.getUserById(eq(fakeToken), eq(userId))).thenReturn(null);
         when(orderMapper.toDtoWithItems(updatedOrder, null)).thenReturn(expectedDto);
 
         OrderWithItemsDto result = orderService.updateOrderStatus(orderId, statusDto);
@@ -254,7 +266,7 @@ public class OrderServiceTest {
         );
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-        when(userClient.getUserById(userId)).thenReturn(null);
+        when(userClient.getUserById(eq(fakeToken), eq(userId))).thenReturn(null);
         when(orderMapper.toDtoWithItems(order, null)).thenReturn(expectedDto);
 
         OrderWithItemsDto result = orderService.getOrderById(orderId);

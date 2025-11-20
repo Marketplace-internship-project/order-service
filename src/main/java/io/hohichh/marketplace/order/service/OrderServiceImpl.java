@@ -23,6 +23,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -53,6 +56,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderWithItemsDto createOrder(List<NewOrderItemDto> items){
         log.debug("Creating new order with {} items", items.size());
         UUID userId = UUID.fromString(SecurityContextHolder.getContext().getAuthentication().getName());
+        String token = extractTokenFromRequest();
 
         Order order = new Order();
         order.setStatus(Status.PENDING);
@@ -69,7 +73,7 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderItems(entityItems);
         Order savedOrder = orderRepository.save(order);
 
-        UserDto userDto = getUserWithCircuitBreaker(userId);
+        UserDto userDto = getUserWithCircuitBreaker(token, userId);
 
         log.info("Order {} created with {} items successfully", savedOrder.getId(), entityItems.size());
         return orderMapper.toDtoWithItems(savedOrder, userDto);
@@ -93,7 +97,8 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(orderToUpd);
 
-        UserDto userDto = getUserWithCircuitBreaker(savedOrder.getUserId());
+        String token = extractTokenFromRequest();
+        UserDto userDto = getUserWithCircuitBreaker(token, savedOrder.getUserId());
 
         log.info("order with id {} updated successfully", id);
         return orderMapper.toDtoWithItems(savedOrder, userDto);
@@ -119,7 +124,8 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
-        UserDto userDto = getUserWithCircuitBreaker(savedOrder.getUserId());
+        String token = extractTokenFromRequest();
+        UserDto userDto = getUserWithCircuitBreaker(token, savedOrder.getUserId());
 
         log.info("Order with id {} cancelled successfully", id);
         return orderMapper.toDtoWithItems(savedOrder, userDto);
@@ -154,7 +160,8 @@ public class OrderServiceImpl implements OrderService {
             return new ResourceNotFoundException("Order not found with id: " + id);
         });
 
-        UserDto userDto = getUserWithCircuitBreaker(order.getUserId());
+        String token = extractTokenFromRequest();
+        UserDto userDto = getUserWithCircuitBreaker(token, order.getUserId());
 
         log.info("Order with id {} got successfully", id);
         return orderMapper.toDtoWithItems(order, userDto);
@@ -191,13 +198,21 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-    private UserDto getUserWithCircuitBreaker(UUID userId) {
+    private UserDto getUserWithCircuitBreaker(String token, UUID userId) {
         return circuitBreakerFactory.create("user-service").run(
-                () -> userClient.getUserById(userId),
+                () -> userClient.getUserById(token, userId),
                 throwable -> {
                     log.warn("Failed to get user info for id {}: {}", userId, throwable.getMessage());
                     return null;
                 }
         );
+    }
+
+    private String extractTokenFromRequest() {
+        ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attr != null) {
+            return attr.getRequest().getHeader("Authorization");
+        }
+        return null;
     }
 }

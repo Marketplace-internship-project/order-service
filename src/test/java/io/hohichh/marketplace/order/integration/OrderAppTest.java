@@ -55,7 +55,7 @@ class OrderAppTest extends AbstractApplicationTest {
 
 
         UserDto mockUser = new UserDto(userId, "John", "Doe", LocalDate.of(1990, 1, 1), "john@test.com");
-        when(userServiceClient.getUserById(userId)).thenReturn(mockUser);
+        when(userServiceClient.getUserById(userToken, userId)).thenReturn(mockUser);
     }
 
     @Test
