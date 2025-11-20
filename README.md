@@ -7,7 +7,7 @@ Service for manage customers' orders
 
 Clone this repository (if you haven't already):
 ```
-git clone -b dev [https://github.com/Marketplace-internship-project/order-service.git](https://github.com/Marketplace-internship-project/order-service.git)
+git clone -b dev https://github.com/Marketplace-internship-project/order-service.git
 cd order-service
 ```
 
@@ -23,11 +23,9 @@ chmod +x start-all.sh
 
 The script will:
 
-Create .env from .env.example.
-
-Clone sibling repositories (user-service, authentication-service) into the parent directory.
-
-Build and start all containers using docker-compose.
+- Create .env from .env.example.
+- Clone sibling repositories (user-service, authentication-service) into the parent directory.
+- Build and start all containers using docker-compose.
 
 Manual Setup (if scripts fail)
 
@@ -35,18 +33,19 @@ If you prefer to do it manually:
 
 Ensure your directory structure looks like this:
 
+```
 /workspace
 ├── order-service        (this repo)
 ├── user-service         (cloned from git)
 └── authentication-service (cloned from git)
-
+```
 
 Inside order-service, create .env file:
-
+```
 cp .env.example .env
-
+```
 
 Run docker compose:
-
+```
 docker-compose up --build
-
+```
