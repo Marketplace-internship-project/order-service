@@ -37,7 +37,6 @@ Ensure your directory structure looks like this:
 /workspace
 ├── order-service        (this repo)
 ├── user-service         (cloned from git)
-└── authentication-service (cloned from git)
 ```
 
 Inside order-service, create .env file:
