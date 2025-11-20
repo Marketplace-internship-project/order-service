@@ -11,7 +11,6 @@ import io.hohichh.marketplace.order.repository.OrderRepository;
 import io.hohichh.marketplace.order.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
