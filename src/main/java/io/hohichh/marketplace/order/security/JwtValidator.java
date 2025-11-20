@@ -9,26 +9,31 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-
+import java.time.Clock;
+import java.util.Date;
 
 @Component
 @Slf4j
 public class JwtValidator {
     private final SecretKey accessSecret;
+    private final Clock clock;
 
-    public JwtValidator(@Value("${jwt.access.secret}") String accessSecretStr) {
-        accessSecret = Keys.hmacShaKeyFor(accessSecretStr.getBytes(StandardCharsets.UTF_8));
+
+    public JwtValidator(@Value("${jwt.access.secret}") String accessSecretStr, Clock clock) {
+        this.accessSecret = Keys.hmacShaKeyFor(accessSecretStr.getBytes(StandardCharsets.UTF_8));
+        this.clock = clock;
     }
 
     public boolean validate(String token) {
-        try{
+        try {
             Jwts.parser()
                     .verifyWith(accessSecret)
+                    .clock(() -> Date.from(clock.instant()))
                     .build()
                     .parseSignedClaims(token);
             return true;
         } catch (Exception e) {
-            log.error("\"Invalid JWT token: {}\"", e.getMessage());
+            log.error("Invalid JWT token: {}", e.getMessage());
             return false;
         }
     }
@@ -36,6 +41,7 @@ public class JwtValidator {
     public Claims getClaims(String token) {
         return Jwts.parser()
                 .verifyWith(accessSecret)
+                .clock(() -> Date.from(clock.instant()))
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

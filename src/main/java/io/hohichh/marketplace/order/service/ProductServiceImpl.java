@@ -13,6 +13,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public ProductDto createProduct(NewProductDto product) {
         logger.debug("Attemp to create new product");
 
@@ -42,6 +44,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     @CacheEvict(value="products", key="#id")
+    @PreAuthorize("hasRole('ADMIN')")
     public ProductDto updateProduct(UUID id, NewProductDto product) {
         logger.debug("Attemp to update product");
 
@@ -62,6 +65,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     @CacheEvict(value = "products", key = "#id")
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteProduct(UUID id) {
         logger.debug("Attempt to delete product with id {}", id);
 
