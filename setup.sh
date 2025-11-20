@@ -2,7 +2,7 @@
 
 
 GREEN='\033[0;32m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 echo -e "${GREEN}=== Marketplace Quick Start ===${NC}"
 
@@ -15,7 +15,6 @@ fi
 
 cd ..
 
-# 3. Клонируем User Service
 if [ ! -d "user-service" ]; then
     echo -e "${GREEN}[2/4] Cloning User Service...${NC}"
     git clone https://github.com/Marketplace-internship-project/user-service.git
@@ -24,12 +23,12 @@ else
 fi
 
 
-if [ ! -d "authentication-service" ]; then
-    echo -e "${GREEN}[3/4] Cloning Authentication Service...${NC}"
-    git clone https://github.com/Marketplace-internship-project/authentication-service.git
-else
-    echo -e "${GREEN}[3/4] Authentication Service directory exists. Skipping clone.${NC}"
-fi
+#if [ ! -d "authentication-service" ]; then
+#    echo -e "${GREEN}[3/4] Cloning Authentication Service...${NC}"
+#    git clone https://github.com/Marketplace-internship-project/authentication-service.git
+#else
+#    echo -e "${GREEN}[3/4] Authentication Service directory exists. Skipping clone.${NC}"
+#fi
 
 cd order-service
 
