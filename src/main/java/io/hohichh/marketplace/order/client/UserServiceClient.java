@@ -12,8 +12,7 @@ import java.util.UUID;
 @FeignClient(
         name = "user-service",
         url = "${application.config.user-url}",
-        path = "/api",
-        configuration = io.hohichh.marketplace.order.config.FeignConfig.class)
+        path = "/api")
 public interface UserServiceClient {
 
     @GetMapping("/v1/users/{id}")
