@@ -1,4 +1,4 @@
-package io.hohichh.marketplace.payment.dto.event;
+package io.hohichh.marketplace.order.dto.event;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

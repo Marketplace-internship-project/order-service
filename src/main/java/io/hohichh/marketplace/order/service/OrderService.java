@@ -10,6 +10,7 @@ import java.util.UUID;
 
 public interface OrderService {
     OrderWithItemsDto createOrder(List<NewOrderItemDto> items);
+    void updateOrderStatusSystem(UUID id, Status status);
     OrderWithItemsDto updateOrderStatus(UUID id, NewStatusOrderDto order);
     OrderWithItemsDto cancelOrder(UUID id);
     void deleteOrder(UUID id);

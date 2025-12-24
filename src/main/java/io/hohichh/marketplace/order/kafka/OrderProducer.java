@@ -1,6 +1,6 @@
 package io.hohichh.marketplace.order.kafka;
 
-import io.hohichh.marketplace.payment.dto.event.OrderCreatedEvent;
+import io.hohichh.marketplace.order.dto.event.OrderCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;

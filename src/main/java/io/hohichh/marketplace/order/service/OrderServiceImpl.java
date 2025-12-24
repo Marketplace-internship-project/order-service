@@ -11,6 +11,7 @@ import io.hohichh.marketplace.order.mapper.*;
 import io.hohichh.marketplace.order.model.OrderItem;
 import io.hohichh.marketplace.order.model.order.*;
 import io.hohichh.marketplace.order.repository.*;
+import io.hohichh.marketplace.order.dto.event.OrderCreatedEvent;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import io.hohichh.marketplace.payment.dto.event.OrderCreatedEvent;
 
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -92,6 +92,29 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("Order {} created with {} items successfully", savedOrder.getId(), entityItems.size());
         return orderMapper.toDtoWithItems(savedOrder, userDto);
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "orders", key = "#id")
+    public void updateOrderStatusSystem(UUID id, Status status) {
+        log.debug("System update for order with id {} to status {}", id, status);
+
+        Order orderToUpd = orderRepository.findById(id).orElseThrow(
+                () -> {
+                    log.error("Can't update order: Order with id {} not found", id);
+                    return new ResourceNotFoundException("Order with id " + id + " not found");
+                }
+        );
+
+        if(orderToUpd.getStatus() == Status.CANCELLED && status != Status.CANCELLED){
+            log.error("Can't update order: Order with id {} status is CANCELLED", id);
+            throw new ActionNotPermittedException("Can't update order: Order with id " + id + " status is CANCELLED");
+        }
+        orderToUpd.setStatus(status);
+
+        orderRepository.save(orderToUpd);
+        log.info("Order with id {} updated to {} by system", id, status);
     }
 
     @Override
