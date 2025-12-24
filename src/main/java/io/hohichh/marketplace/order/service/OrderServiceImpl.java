@@ -6,6 +6,7 @@ import io.hohichh.marketplace.order.dto.item.NewOrderItemDto;
 import io.hohichh.marketplace.order.dto.product.ProductDto;
 import io.hohichh.marketplace.order.exception.ActionNotPermittedException;
 import io.hohichh.marketplace.order.exception.ResourceNotFoundException;
+import io.hohichh.marketplace.order.kafka.OrderProducer;
 import io.hohichh.marketplace.order.mapper.*;
 import io.hohichh.marketplace.order.model.OrderItem;
 import io.hohichh.marketplace.order.model.order.*;
@@ -22,10 +23,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import io.hohichh.marketplace.payment.dto.event.OrderCreatedEvent;
 
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -52,6 +55,8 @@ public class OrderServiceImpl implements OrderService {
     private final UserServiceClient userClient;
     private final CircuitBreakerFactory<?,?> circuitBreakerFactory;
 
+    private final OrderProducer orderProducer;
+
     @Transactional
     public OrderWithItemsDto createOrder(List<NewOrderItemDto> items){
         log.debug("Creating new order with {} items", items.size());
@@ -72,6 +77,16 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setOrderItems(entityItems);
         Order savedOrder = orderRepository.save(order);
+        double amount = savedOrder.getOrderItems().stream()
+                .mapToDouble(orderItem -> orderItem.getPricePerUnit().doubleValue()
+                        * orderItem.getQuantity()).sum();
+
+        //send update to kafka
+        orderProducer.sendOrderCreatedEvent(new OrderCreatedEvent(
+                savedOrder.getId().toString(),
+                savedOrder.getUserId().toString(),
+                new BigDecimal(amount)
+        ));
 
         UserDto userDto = getUserWithCircuitBreaker(token, userId);
 
