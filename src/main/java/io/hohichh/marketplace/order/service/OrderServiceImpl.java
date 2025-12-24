@@ -77,15 +77,15 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setOrderItems(entityItems);
         Order savedOrder = orderRepository.save(order);
-        double amount = savedOrder.getOrderItems().stream()
-                .mapToDouble(orderItem -> orderItem.getPricePerUnit().doubleValue()
-                        * orderItem.getQuantity()).sum();
+        BigDecimal amount = savedOrder.getOrderItems().stream()
+                .map(item -> item.getPricePerUnit().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         //send update to kafka
         orderProducer.sendOrderCreatedEvent(new OrderCreatedEvent(
                 savedOrder.getId().toString(),
                 savedOrder.getUserId().toString(),
-                new BigDecimal(amount)
+                amount
         ));
 
         UserDto userDto = getUserWithCircuitBreaker(token, userId);

@@ -6,6 +6,7 @@ import io.hohichh.marketplace.order.dto.item.NewOrderItemDto;
 import io.hohichh.marketplace.order.dto.product.ProductDto;
 import io.hohichh.marketplace.order.exception.ActionNotPermittedException;
 import io.hohichh.marketplace.order.exception.ResourceNotFoundException;
+import io.hohichh.marketplace.order.kafka.OrderProducer;
 import io.hohichh.marketplace.order.mapper.OrderItemMapper;
 import io.hohichh.marketplace.order.mapper.OrderMapper;
 import io.hohichh.marketplace.order.mapper.ProductMapper;
@@ -75,6 +76,8 @@ class OrderServiceTest {
     @Mock
     private Clock clock;
     private final String fakeToken = "Bearer test-token-123";
+    @Mock
+    private OrderProducer orderProducer;
 
 
     @InjectMocks
@@ -136,18 +139,26 @@ class OrderServiceTest {
 
         ProductDto productDto = new ProductDto(productId, "Test Product", BigDecimal.TEN);
 
+        OrderItem mockItem = new OrderItem();
+        mockItem.setProductId(productId);
+        mockItem.setPricePerUnit(BigDecimal.TEN);
+        mockItem.setQuantity(2);
+
+        when(orderItemMapper.toOrderItem(any(), any(), any())).thenReturn(mockItem);
+
         Order savedOrder = new Order();
         setOrderId(savedOrder, orderId);
         savedOrder.setUserId(userId);
         savedOrder.setStatus(Status.PENDING);
         savedOrder.setCreationDate(fixedDate);
 
+        savedOrder.setOrderItems(List.of(mockItem));
+
         OrderWithItemsDto expectedDto = new OrderWithItemsDto(
                 orderId, userId, Status.PENDING, fixedDate, null, List.of()
         );
 
         when(productService.getProductById(productId)).thenReturn(productDto);
-        when(orderItemMapper.toOrderItem(any(), any(), any())).thenReturn(new OrderItem());
         when(orderRepository.save(any(Order.class))).thenReturn(savedOrder);
 
         when(userClient.getUserById(fakeToken, userId)).thenReturn(null);
@@ -158,6 +169,26 @@ class OrderServiceTest {
         assertNotNull(result);
         assertEquals(expectedDto, result);
         verify(orderRepository).save(any(Order.class));
+        verify(orderProducer).sendOrderCreatedEvent(any());
+    }
+
+    @Test
+    void updateOrderStatusSystem_shouldUpdateStatus_withoutUserContext() {
+        UUID orderId = UUID.randomUUID();
+        Order existingOrder = new Order();
+        setOrderId(existingOrder, orderId);
+        existingOrder.setStatus(Status.PENDING);
+        existingOrder.setUserId(UUID.randomUUID());
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(existingOrder));
+
+        orderService.updateOrderStatusSystem(orderId, Status.PROCESSING);
+
+        assertEquals(Status.PROCESSING, existingOrder.getStatus());
+        verify(orderRepository).save(existingOrder);
+
+        verifyNoInteractions(userClient);
+        verifyNoInteractions(circuitBreakerFactory);
     }
 
     @Test
