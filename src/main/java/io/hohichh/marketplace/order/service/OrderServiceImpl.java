@@ -57,6 +57,8 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderProducer orderProducer;
 
+    private static final String ORDER_NOT_FOUND_MSG = "Order with id %s not found";
+
     @Transactional
     public OrderWithItemsDto createOrder(List<NewOrderItemDto> items){
         log.debug("Creating new order with {} items", items.size());
@@ -103,7 +105,7 @@ public class OrderServiceImpl implements OrderService {
         Order orderToUpd = orderRepository.findById(id).orElseThrow(
                 () -> {
                     log.error("Can't update order: Order with id {} not found", id);
-                    return new ResourceNotFoundException("Order with id " + id + " not found");
+                    return new ResourceNotFoundException(String.format(ORDER_NOT_FOUND_MSG, id));
                 }
         );
 
@@ -127,7 +129,7 @@ public class OrderServiceImpl implements OrderService {
         Order orderToUpd = orderRepository.findById(id).orElseThrow(
                 () -> {
                     log.error("Can't update order: Order with id {} not found", id);
-                    return new ResourceNotFoundException("Order with id " + id + " not found");
+                    return new ResourceNotFoundException(String.format(ORDER_NOT_FOUND_MSG, id));
                 }
         );
 
@@ -151,7 +153,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = orderRepository.findById(id).orElseThrow(() -> {
             log.error("Can't cancel order: Order with id {} not found", id);
-            return new ResourceNotFoundException("Order with id " + id + " not found");
+            return new ResourceNotFoundException(String.format(ORDER_NOT_FOUND_MSG, id));
         });
 
         if(order.getStatus().equals(Status.PENDING)){
@@ -178,7 +180,7 @@ public class OrderServiceImpl implements OrderService {
 
         if (!orderRepository.existsById(id)) {
             log.error("Order with id {} not found", id);
-            throw new ResourceNotFoundException("Order with id " + id + " not found");
+            throw new ResourceNotFoundException(String.format(ORDER_NOT_FOUND_MSG, id));
         }
 
         orderRepository.deleteById(id);
@@ -195,7 +197,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = orderRepository.findById(id).orElseThrow(() -> {
             log.error("Order not found with id: {}", id);
-            return new ResourceNotFoundException("Order not found with id: " + id);
+            return new ResourceNotFoundException(String.format(ORDER_NOT_FOUND_MSG, id));
         });
 
         String token = extractTokenFromRequest();
